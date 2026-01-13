@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  expenses  Expense[]
+  categories Category[]
+  objectives Objectif[]
+  projectsOwned ProjetCollectif[]
+  projectParticipations Participantprojet[]
+  incomes EntreeArgent[]
+  aiAlerts AlerteIA[]
+  repartitions Repartition[]
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  title       String
+  amount      Float
+  date        DateTime @default(now())
+  category    String?
+  categoryId  String?
+  categoryRel Category? @relation(fields: [categoryId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
+}
+
+model Category {
+  id      String    @id @default(cuid())
+  name    String
+  userId  String?
+  user    User?     @relation(fields: [userId], references: [id])
+  expenses Expense[]
+}
+
+model EntreeArgent {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Float
+  date      DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  project   ProjetCollectif? @relation(fields: [projectId], references: [id])
+  projectId String?
+  createdAt DateTime @default(now())
+}
+
+model AlerteIA {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  prompt    String
+  response  String?
+  level     String?
+  createdAt DateTime @default(now())
+}
+
+model ProjetCollectif {
+  id           String              @id @default(cuid())
+  name         String
+  description  String?
+  owner        User                @relation(fields: [ownerId], references: [id])
+  ownerId      String
+  isClosed     Boolean             @default(false)
+  participants Participantprojet[]
+  repartitions Repartition[]
+  incomes      EntreeArgent[]
+  createdAt    DateTime            @default(now())
+}
+
+model Participantprojet {
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  project   ProjetCollectif  @relation(fields: [projectId], references: [id])
+  projectId String
+  role      String?
+  joinedAt  DateTime         @default(now())
+}
+
+model Repartition {
+  id        String           @id @default(cuid())
+  project   ProjetCollectif  @relation(fields: [projectId], references: [id])
+  projectId String
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  amount    Float
+  createdAt DateTime         @default(now())
+}
+
+model Objectif {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  targetAmount Float?
+  progress    Float    @default(0)
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}

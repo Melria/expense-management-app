@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: expense_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    # Retry prisma db push until the DB is ready, then start the app
+    command: sh -c "npx prisma generate && for i in $(seq 1 20); do npx prisma db push && break || sleep 2; done && node src/index.js"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/expense_db?schema=public"
+      JWT_SECRET: supersecretchange
+      PORT: 3000
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  db-data:
