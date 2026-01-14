@@ -7,54 +7,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  expenses  Expense[]
-  categories Category[]
-  objectives Objectif[]
-  projectsOwned ProjetCollectif[]
+  id                    String              @id @default(cuid())
+  email                 String              @unique
+  password              String
+  name                  String?
+  createdAt             DateTime            @default(now())
+  expenses              Expense[]
+  categories            Category[]
+  objectives            Objectif[]
+  projectsOwned         ProjetCollectif[]
   projectParticipations Participantprojet[]
-  incomes EntreeArgent[]
-  aiAlerts AlerteIA[]
-  repartitions Repartition[]
+  incomes               EntreeArgent[]
+  aiAlerts              AlerteIA[]
+  repartitions          Repartition[]
 }
 
 model Expense {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   amount      Float
-  date        DateTime @default(now())
+  date        DateTime   @default(now())
   category    String?
   categoryId  String?
-  categoryRel Category? @relation(fields: [categoryId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
+  categoryRel Category?  @relation(fields: [categoryId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
   userId      String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime   @default(now())
+  objectifs   Objectif[]
 }
 
 model Category {
-  id      String    @id @default(cuid())
-  name    String
-  userId  String?
-  user    User?     @relation(fields: [userId], references: [id])
-  expenses Expense[]
+  id           String        @id @default(cuid())
+  name         String
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id])
+  expenses     Expense[]
+  repartitions Repartition[]
 }
 
 model EntreeArgent {
-  id        String   @id @default(cuid())
-  title     String
-  amount    Float
-  date      DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  project   ProjetCollectif? @relation(fields: [projectId], references: [id])
-  projectId String?
-  createdAt DateTime @default(now())
+  id           String           @id @default(cuid())
+  title        String
+  amount       Float
+  date         DateTime         @default(now())
+  user         User             @relation(fields: [userId], references: [id])
+  userId       String
+  project      ProjetCollectif? @relation(fields: [projectId], references: [id])
+  projectId    String?
+  repartitions Repartition[]
+  createdAt    DateTime         @default(now())
 }
 
 model AlerteIA {
@@ -81,33 +83,41 @@ model ProjetCollectif {
 }
 
 model Participantprojet {
-  id        String           @id @default(cuid())
-  user      User             @relation(fields: [userId], references: [id])
+  id        String          @id @default(cuid())
+  user      User            @relation(fields: [userId], references: [id])
   userId    String
-  project   ProjetCollectif  @relation(fields: [projectId], references: [id])
+  project   ProjetCollectif @relation(fields: [projectId], references: [id])
   projectId String
   role      String?
-  joinedAt  DateTime         @default(now())
+  joinedAt  DateTime        @default(now())
 }
 
 model Repartition {
-  id        String           @id @default(cuid())
-  project   ProjetCollectif  @relation(fields: [projectId], references: [id])
-  projectId String
-  user      User             @relation(fields: [userId], references: [id])
-  userId    String
-  amount    Float
-  createdAt DateTime         @default(now())
+  id             String          @id @default(cuid())
+  project        ProjetCollectif @relation(fields: [projectId], references: [id])
+  projectId      String
+  user           User            @relation(fields: [userId], references: [id])
+  userId         String
+  entreeArgent   EntreeArgent    @relation(fields: [entreeArgentId], references: [id])
+  entreeArgentId String
+  objectif       Objectif?       @relation(fields: [objectifId], references: [id])
+  objectifId     String?
+  category       Category?       @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  amount         Float
+  createdAt      DateTime        @default(now())
 }
 
 model Objectif {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
   targetAmount Float?
-  progress    Float    @default(0)
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  isCompleted Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  progress     Float         @default(0)
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  isCompleted  Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  repartitions Repartition[]
+  expenses     Expense[]
 }
