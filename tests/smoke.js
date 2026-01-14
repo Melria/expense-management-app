@@ -6,8 +6,17 @@ const BASE = process.env.BASE_URL || `http://localhost:${process.env.PORT||3000}
 async function run(){
   try{
     console.log('Base URL:', BASE);
-    // login
-    const login = await axios.post(`${BASE}/api/auth/login`, { email: 'test@example.com', password: 'Test1234' });
+    // login (register if missing)
+    let login;
+    try{
+      login = await axios.post(`${BASE}/api/auth/login`, { email: 'test@example.com', password: 'Test1234' });
+    }catch(err){
+      if(err.response && err.response.status === 400){
+        console.log('No test user found, registering...');
+        await axios.post(`${BASE}/api/auth/register`, { email: 'test@example.com', password: 'Test1234', name: 'Test User' });
+        login = await axios.post(`${BASE}/api/auth/login`, { email: 'test@example.com', password: 'Test1234' });
+      }else throw err;
+    }
     const token = login.data.token;
     console.log('Logged in, token:', token ? token.slice(0,20)+'...' : 'no-token');
     const headers = { Authorization: `Bearer ${token}` };
