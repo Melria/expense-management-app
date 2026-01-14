@@ -32,11 +32,21 @@ async function addParticipant(req, res) {
 }
 
 async function addRepartition(req, res) {
-  const { userId, amount } = req.body;
+  const { userId, amount, entreeArgentId, objectifId, categoryId } = req.body;
+  if (!entreeArgentId) return res.status(400).json({ error: 'entreeArgentId required' });
   try {
-    const r = await prisma.repartition.create({ data: { projectId: req.params.id, userId, amount: parseFloat(amount) } });
+    const data = {
+      projectId: req.params.id,
+      userId,
+      amount: parseFloat(amount),
+      entreeArgentId,
+    };
+    if (objectifId) data.objectifId = objectifId;
+    if (categoryId) data.categoryId = categoryId;
+    const r = await prisma.repartition.create({ data });
     res.json(r);
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+  } catch (err) { console.error('addRepartition error:', err); res.status(500).json({ error: 'Server error', detail: err.message }); }
+
 }
 
 module.exports = { listProjects, createProject, getProject, addParticipant, addRepartition };
