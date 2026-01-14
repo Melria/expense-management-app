@@ -3,10 +3,15 @@ const prisma = require('../prismaClient');
 async function createExpense(req, res) {
   const { title, amount, date, category } = req.body;
   try {
-    const expense = await prisma.expense.create({ data: { title, amount: parseFloat(amount), date: date ? new Date(date) : undefined, category, userId: req.user.id } });
-    res.json(expense);
+      const { title, amount, date, category, objectifIds } = req.body;
+      const data = { title, amount: parseFloat(amount), date: date ? new Date(date) : undefined, category, userId: req.user.id };
+      if (Array.isArray(objectifIds) && objectifIds.length) {
+        data.objectifs = { connect: objectifIds.map(id => ({ id })) };
+      }
+      const expense = await prisma.expense.create({ data });
+      res.json(expense);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+      res.status(500).json({ error: 'Server error', detail: err.message });
   }
 }
 
@@ -33,9 +38,13 @@ async function updateExpense(req, res) {
   try {
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
     if (!existing || existing.userId !== req.user.id) return res.status(404).json({ error: 'Not found' });
-    const { title, amount, date, category } = req.body;
-    const updated = await prisma.expense.update({ where: { id: req.params.id }, data: { title, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined, category } });
-    res.json(updated);
+      const { title, amount, date, category, objectifIds } = req.body;
+      const data = { title, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined, category };
+      if (Array.isArray(objectifIds)) {
+        data.objectifs = { set: objectifIds.map(id => ({ id })) };
+      }
+      const updated = await prisma.expense.update({ where: { id: req.params.id }, data });
+      res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
